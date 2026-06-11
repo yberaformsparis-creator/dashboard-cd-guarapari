@@ -1,86 +1,192 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard Ocupação GYP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dashboard Ocupação CD Guarapari</title>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
+
 body{
-font-family:Arial;
-padding:20px;
-background:#f4f4f4;
+    font-family: Arial, sans-serif;
+    background:#f4f4f4;
+    margin:0;
+    padding:20px;
+}
+
+h1{
+    text-align:center;
+}
+
+.cards{
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+    justify-content:center;
+    margin-top:20px;
 }
 
 .card{
-background:white;
-padding:20px;
-margin:10px;
-border-radius:10px;
-display:inline-block;
-width:250px;
-box-shadow:0 0 10px rgba(0,0,0,.1);
+    background:white;
+    width:220px;
+    padding:20px;
+    border-radius:10px;
+    text-align:center;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
 }
+
+.card h3{
+    margin:0;
+}
+
+.card p{
+    font-size:28px;
+    font-weight:bold;
+    margin-top:10px;
+}
+
+button{
+    display:block;
+    margin:20px auto;
+    padding:10px 20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<h1>Dashboard Ocupação CD Guarapari</h1>
+<h1>Dashboard de Ocupação - CD Guarapari</h1>
 
-<div class="card">
-<h3>Total</h3>
-<p id="total"></p>
-</div>
+<button onclick="exportar()">Exportar Resumo CSV</button>
 
-<div class="card">
-<h3>Ocupados</h3>
-<p id="ocupados"></p>
-</div>
+<div class="cards">
 
-<div class="card">
-<h3>Disponíveis</h3>
-<p id="disponiveis"></p>
-</div>
+    <div class="card">
+        <h3>Total</h3>
+        <p id="total">0</p>
+    </div>
 
-<div class="card">
-<h3>Bloqueados</h3>
-<p id="bloqueados"></p>
+    <div class="card">
+        <h3>Ocupados</h3>
+        <p id="ocupados">0</p>
+    </div>
+
+    <div class="card">
+        <h3>Disponíveis</h3>
+        <p id="disponiveis">0</p>
+    </div>
+
+    <div class="card">
+        <h3>Bloqueados</h3>
+        <p id="bloqueados">0</p>
+    </div>
+
+    <div class="card">
+        <h3>1º Andar</h3>
+        <p id="andar1">0</p>
+    </div>
+
+    <div class="card">
+        <h3>2º Andar</h3>
+        <p id="andar2">0</p>
+    </div>
+
+    <div class="card">
+        <h3>3º Andar</h3>
+        <p id="andar3">0</p>
+    </div>
+
 </div>
 
 <script>
 
-Papa.parse("enderecos.csv",{
-download:true,
-header:true,
-complete:function(resultado){
+Papa.parse("enderecos.csv", {
 
-let dados = resultado.data;
+    download:true,
+    header:true,
 
-let total = dados.length;
+    complete:function(resultado){
 
-let ocupados = dados.filter(x =>
-Number(x["Estoque"]) > 0
-).length;
+        let dados = resultado.data.filter(linha =>
+            linha["Local"] &&
+            linha["Local"].trim() !== ""
+        );
 
-let disponiveis = dados.filter(x =>
-Number(x["Estoque"]) == 0
-).length;
+        let total = dados.length;
 
-let bloqueados = dados.filter(x =>
-x["Motivo do Bloqueio"] &&
-x["Motivo do Bloqueio"] != ""
-).length;
+        let ocupados = dados.filter(x =>
+            Number(x["Estoque"]) > 0
+        ).length;
 
-document.getElementById("total").innerHTML = total;
-document.getElementById("ocupados").innerHTML = ocupados;
-document.getElementById("disponiveis").innerHTML = disponiveis;
-document.getElementById("bloqueados").innerHTML = bloqueados;
+        let disponiveis = dados.filter(x =>
+            Number(x["Estoque"]) == 0
+        ).length;
 
-}
+        let bloqueados = dados.filter(x =>
+            x["Motivo do Bloqueio"] &&
+            x["Motivo do Bloqueio"].trim() !== ""
+        ).length;
+
+        let andar1 = dados.filter(x =>
+            x["Andar"] == "1"
+        ).length;
+
+        let andar2 = dados.filter(x =>
+            x["Andar"] == "2"
+        ).length;
+
+        let andar3 = dados.filter(x =>
+            x["Andar"] == "3"
+        ).length;
+
+        document.getElementById("total").innerHTML = total;
+        document.getElementById("ocupados").innerHTML = ocupados;
+        document.getElementById("disponiveis").innerHTML = disponiveis;
+        document.getElementById("bloqueados").innerHTML = bloqueados;
+
+        document.getElementById("andar1").innerHTML = andar1;
+        document.getElementById("andar2").innerHTML = andar2;
+        document.getElementById("andar3").innerHTML = andar3;
+
+    },
+
+    error:function(erro){
+        alert("Erro ao carregar o CSV: " + erro);
+    }
+
 });
+
+function exportar(){
+
+    let csv = "Indicador,Quantidade\n";
+
+    csv += "Total," + document.getElementById("total").innerText + "\n";
+    csv += "Ocupados," + document.getElementById("ocupados").innerText + "\n";
+    csv += "Disponiveis," + document.getElementById("disponiveis").innerText + "\n";
+    csv += "Bloqueados," + document.getElementById("bloqueados").innerText + "\n";
+    csv += "1 Andar," + document.getElementById("andar1").innerText + "\n";
+    csv += "2 Andar," + document.getElementById("andar2").innerText + "\n";
+    csv += "3 Andar," + document.getElementById("andar3").innerText + "\n";
+
+    let blob = new Blob([csv], {type:"text/csv"});
+
+    let link = document.createElement("a");
+
+    link.href = URL.createObjectURL(blob);
+    link.download = "Resumo_CD_Guarapari.csv";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
 </script>
 
