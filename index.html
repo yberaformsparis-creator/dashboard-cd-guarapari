@@ -1,33 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <title>Dashboard CD Guarapari</title>
 
 <style>
 body{
-font-family:Arial;
-background:#f4f4f4;
-padding:20px;
+    font-family: Arial, sans-serif;
+    background:#eef1f5;
+    margin:0;
+    padding:30px;
 }
 
-.card{
-background:white;
-padding:20px;
-margin:10px;
-border-radius:10px;
-display:inline-block;
-width:220px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
+header{
+    text-align:center;
+    margin-bottom:20px;
 }
 
 h1{
-text-align:center;
+    margin:0;
+    font-size:22px;
+    color:#333;
+}
+
+.container{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:15px;
+    margin-top:20px;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    width:220px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    transition:0.2s;
+}
+
+.card:hover{
+    transform:scale(1.03);
+}
+
+.titulo{
+    font-size:14px;
+    color:#666;
 }
 
 .numero{
-font-size:32px;
-font-weight:bold;
+    font-size:32px;
+    font-weight:bold;
+    margin-top:10px;
+    color:#111;
+}
+
+input{
+    display:block;
+    margin:0 auto;
+    padding:10px;
 }
 </style>
 
@@ -35,39 +67,64 @@ font-weight:bold;
 
 <body>
 
-<h1>Dashboard de Ocupação - CD Guarapari</h1>
+<header>
+    <h1>Dashboard de Ocupação - CD Guarapari</h1>
+    <input type="file" id="arquivo">
+</header>
 
-<input type="file" id="arquivo">
-
-<div id="resultado"></div>
+<div class="container" id="resultado"></div>
 
 <script>
 
 document.getElementById("arquivo")
 .addEventListener("change", function(e){
 
-const arquivo = e.target.files[0];
+    const arquivo = e.target.files[0];
+    const leitor = new FileReader();
 
-const leitor = new FileReader();
+    leitor.onload = function(){
 
-leitor.onload = function(){
+        const texto = leitor.result;
 
-const texto = leitor.result;
+        // aceita TSV / CSV
+        let linhas = texto.split(/\r?\n/).filter(l => l.trim() !== "");
 
-const linhas = texto.split("\n");
+        let total = linhas.length;
 
-let total = linhas.length - 1;
+        // remove cabeçalho se existir
+        if(total > 0 && linhas[0].toLowerCase().includes("endereço")){
+            linhas.shift();
+            total = linhas.length;
+        }
 
-document.getElementById("resultado").innerHTML = `
-<div class="card">
-<h3>Total Endereços</h3>
-<div class="numero">${total}</div>
-</div>
-`;
+        // simulação de ocupação (caso queira evoluir depois)
+        let ocupados = Math.floor(total * 0.72);
+        let livres = total - ocupados;
 
-};
+        document.getElementById("resultado").innerHTML = `
+            <div class="card">
+                <div class="titulo">Total Endereços</div>
+                <div class="numero">${total}</div>
+            </div>
 
-leitor.readAsText(arquivo);
+            <div class="card">
+                <div class="titulo">Ocupados</div>
+                <div class="numero">${ocupados}</div>
+            </div>
+
+            <div class="card">
+                <div class="titulo">Livres</div>
+                <div class="numero">${livres}</div>
+            </div>
+
+            <div class="card">
+                <div class="titulo">Ocupação (%)</div>
+                <div class="numero">${total ? Math.round((ocupados/total)*100) : 0}%</div>
+            </div>
+        `;
+    };
+
+    leitor.readAsText(arquivo);
 
 });
 
