@@ -1,166 +1,48 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<title>Dashboard Ocupação CD Guarapari</title>
-
-<style>
-body{
-    font-family:Arial;
-    background:#f4f4f4;
-    padding:20px;
-}
-
-h1{
-    text-align:center;
-}
-
-.cards{
-    display:flex;
-    flex-wrap:wrap;
-    gap:15px;
-}
-
-.card{
-    background:white;
-    padding:20px;
-    width:220px;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,.1);
-}
-
-.valor{
-    font-size:32px;
-    font-weight:bold;
-}
-</style>
-
-</head>
-<body>
-
-<h1>Dashboard Ocupação CD Guarapari</h1>
-
-<input type="file" id="arquivo" accept=".tsv">
-
-<br><br>
+<div class="header">
+    <h1>Dashboard de Ocupação CD Guarapari</h1>
+    <p>Controle de Endereços Logísticos</p>
+</div>
 
 <div class="cards">
 
-<div class="card">
-<h3>Total</h3>
+<div class="card total">
+<h3>📦 Total</h3>
 <div class="valor" id="total">0</div>
 </div>
 
-<div class="card">
-<h3>Ocupados</h3>
+<div class="card ocupados">
+<h3>✅ Ocupados</h3>
 <div class="valor" id="ocupados">0</div>
 </div>
 
-<div class="card">
-<h3>Disponíveis</h3>
+<div class="card disponiveis">
+<h3>📍 Disponíveis</h3>
 <div class="valor" id="disponiveis">0</div>
 </div>
 
-<div class="card">
-<h3>Bloqueados</h3>
+<div class="card bloqueados">
+<h3>⛔ Bloqueados</h3>
 <div class="valor" id="bloqueados">0</div>
 </div>
 
 <div class="card">
-<h3>1º Andar</h3>
+<h3>🏢 1º Andar</h3>
 <div class="valor" id="andar1">0</div>
 </div>
 
 <div class="card">
-<h3>2º Andar</h3>
+<h3>🏢 2º Andar</h3>
 <div class="valor" id="andar2">0</div>
 </div>
 
 <div class="card">
-<h3>3º Andar</h3>
+<h3>🏢 3º Andar</h3>
 <div class="valor" id="andar3">0</div>
 </div>
 
+<div class="card">
+<h3>📈 Taxa de Ocupação</h3>
+<div class="valor" id="taxa">0%</div>
 </div>
 
-<script>
-
-document.getElementById("arquivo").addEventListener("change", function(e){
-
-    const arquivo = e.target.files[0];
-
-    const leitor = new FileReader();
-
-    leitor.onload = function(event){
-
-        const texto = event.target.result;
-
-        const linhas = texto.split(/\r?\n/);
-
-        const cabecalho = linhas[0].split("\t");
-
-        const dados = [];
-
-        for(let i=1;i<linhas.length;i++){
-
-            if(!linhas[i].trim()) continue;
-
-            const valores = linhas[i].split("\t");
-
-            let obj = {};
-
-            cabecalho.forEach((coluna,index)=>{
-                obj[coluna.trim()] = valores[index];
-            });
-
-            dados.push(obj);
-        }
-
-        calcular(dados);
-    };
-
-    leitor.readAsText(arquivo);
-
-});
-
-function calcular(dados){
-
-    let total = dados.length;
-
-    let ocupados = dados.filter(x =>
-        Number(x["Estoque"] || 0) > 0
-    ).length;
-
-    let disponiveis = dados.filter(x =>
-        Number(x["Estoque"] || 0) === 0
-    ).length;
-
-    let bloqueados = dados.filter(x =>
-        (x["Motivo do Bloqueio"] || "").trim() !== ""
-    ).length;
-
-    let andar1 = dados.filter(x =>
-        x["Andar"] == "1"
-    ).length;
-
-    let andar2 = dados.filter(x =>
-        x["Andar"] == "2"
-    ).length;
-
-    let andar3 = dados.filter(x =>
-        x["Andar"] == "3"
-    ).length;
-
-    document.getElementById("total").innerText = total;
-    document.getElementById("ocupados").innerText = ocupados;
-    document.getElementById("disponiveis").innerText = disponiveis;
-    document.getElementById("bloqueados").innerText = bloqueados;
-    document.getElementById("andar1").innerText = andar1;
-    document.getElementById("andar2").innerText = andar2;
-    document.getElementById("andar3").innerText = andar3;
-}
-
-</script>
-
-</body>
-</html>
+</div>
