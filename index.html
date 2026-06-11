@@ -1,210 +1,85 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard CD Guarapari</title>
+<title>Dashboard Ocupação GYP</title>
 
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
 body{
-font-family:Arial,sans-serif;
-background:#f5f5f5;
+font-family:Arial;
 padding:20px;
-margin:0;
-}
-
-.header{
-background:#111;
-padding:30px;
-border-radius:15px;
-text-align:center;
-margin-bottom:20px;
-}
-
-.logo{
-height:80px;
-}
-
-h1{
-color:#C9A227;
-}
-
-h2{
-color:white;
-font-weight:normal;
+background:#f4f4f4;
 }
 
 .card{
 background:white;
-width:260px;
 padding:20px;
 margin:10px;
-border-radius:15px;
+border-radius:10px;
 display:inline-block;
-box-shadow:0 5px 20px rgba(0,0,0,.08);
-text-align:center;
-}
-
-.numero{
-font-size:36px;
-font-weight:bold;
-}
-
-#resultado{
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
-}
-
-button{
-padding:10px 20px;
-background:#C9A227;
-color:white;
-border:none;
-border-radius:8px;
-cursor:pointer;
+width:250px;
+box-shadow:0 0 10px rgba(0,0,0,.1);
 }
 </style>
+
 </head>
 
 <body>
 
-<div class="header">
-
-<img src="logo.png" class="logo">
-
-<h1>Dashboard de Ocupação</h1>
-<h2>CD Guarapari</h2>
-
-<p id="dataAtual"></p>
-
-<input type="file" id="arquivo">
-
-<button onclick="salvarPNG()">
-📷 Salvar PNG
-</button>
-
-</div>
-
-<div id="resultado"></div>
-
-<script>
-
-document.getElementById("dataAtual").innerHTML =
-new Date().toLocaleString("pt-BR");
-
-function salvarPNG(){
-
-html2canvas(document.body).then(canvas=>{
-
-const link=document.createElement("a");
-
-link.download="Dashboard_CD_Guarapari.png";
-
-link.href=canvas.toDataURL("image/png");
-
-link.click();
-
-});
-
-}
-
-document.getElementById("arquivo")
-.addEventListener("change",function(e){
-
-const arquivo=e.target.files[0];
-
-const leitor=new FileReader();
-
-leitor.onload=function(){
-
-const texto=leitor.result;
-
-const linhas=texto.split(/\r?\n/);
-
-let total=0;
-let ocupados=0;
-let disponiveis=0;
-let bloqueados=0;
-
-for(let i=1;i<linhas.length;i++){
-
-const linha=linhas[i];
-
-if(!linha) continue;
-
-const c=linha.split("\t");
-
-if(c.length<24) continue;
-
-total++;
-
-const ativo=(c[10]||"").trim();
-const estoque=parseFloat(c[20])||0;
-const motivo=(c[23]||"").trim();
-
-if(ativo!=="S" || motivo!==""){
-
-bloqueados++;
-
-}else if(estoque>0){
-
-ocupados++;
-
-}else{
-
-disponiveis++;
-
-}
-
-}
-
-const percOcupado=
-((ocupados/total)*100).toFixed(1);
-
-const percDisponivel=
-((disponiveis/total)*100).toFixed(1);
-
-document.getElementById("resultado").innerHTML=`
+<h1>Dashboard Ocupação CD Guarapari</h1>
 
 <div class="card">
-<h3>Total Endereços</h3>
-<div class="numero">${total}</div>
+<h3>Total</h3>
+<p id="total"></p>
 </div>
 
 <div class="card">
 <h3>Ocupados</h3>
-<div class="numero">${ocupados}</div>
+<p id="ocupados"></p>
 </div>
 
 <div class="card">
 <h3>Disponíveis</h3>
-<div class="numero">${disponiveis}</div>
+<p id="disponiveis"></p>
 </div>
 
 <div class="card">
 <h3>Bloqueados</h3>
-<div class="numero">${bloqueados}</div>
+<p id="bloqueados"></p>
 </div>
 
-<div class="card">
-<h3>% Ocupado</h3>
-<div class="numero">${percOcupado}%</div>
-</div>
+<script>
 
-<div class="card">
-<h3>% Disponível</h3>
-<div class="numero">${percDisponivel}%</div>
-</div>
+Papa.parse("enderecos.csv",{
+download:true,
+header:true,
+complete:function(resultado){
 
-`;
+let dados = resultado.data;
 
-};
+let total = dados.length;
 
-leitor.readAsText(arquivo);
+let ocupados = dados.filter(x =>
+Number(x["Estoque"]) > 0
+).length;
 
+let disponiveis = dados.filter(x =>
+Number(x["Estoque"]) == 0
+).length;
+
+let bloqueados = dados.filter(x =>
+x["Motivo do Bloqueio"] &&
+x["Motivo do Bloqueio"] != ""
+).length;
+
+document.getElementById("total").innerHTML = total;
+document.getElementById("ocupados").innerHTML = ocupados;
+document.getElementById("disponiveis").innerHTML = disponiveis;
+document.getElementById("bloqueados").innerHTML = bloqueados;
+
+}
 });
 
 </script>
