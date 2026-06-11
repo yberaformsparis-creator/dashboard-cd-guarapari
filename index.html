@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dashboard CD Guarapari</title>
+
+<style>
+body{
+font-family:Arial;
+background:#f4f4f4;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+margin:10px;
+border-radius:10px;
+display:inline-block;
+width:220px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h1{
+text-align:center;
+}
+
+.numero{
+font-size:32px;
+font-weight:bold;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Dashboard de Ocupação - CD Guarapari</h1>
+
+<input type="file" id="arquivo">
+
+<div id="resultado"></div>
+
+<script>
+
+document.getElementById("arquivo")
+.addEventListener("change", function(e){
+
+const arquivo = e.target.files[0];
+
+const leitor = new FileReader();
+
+leitor.onload = function(){
+
+const texto = leitor.result;
+
+const linhas = texto.split("\n");
+
+let total = linhas.length - 1;
+
+document.getElementById("resultado").innerHTML = `
+<div class="card">
+<h3>Total Endereços</h3>
+<div class="numero">${total}</div>
+</div>
+`;
+
+};
+
+leitor.readAsText(arquivo);
+
+});
+
+</script>
+
+</body>
+</html>
