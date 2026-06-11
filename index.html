@@ -1,48 +1,77 @@
-<div class="header">
-    <h1>Dashboard de Ocupação CD Guarapari</h1>
-    <p>Controle de Endereços Logísticos</p>
-</div>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dashboard CD Guarapari</title>
 
-<div class="cards">
+<style>
+body{
+font-family:Arial;
+background:#f4f4f4;
+padding:20px;
+}
 
-<div class="card total">
-<h3>📦 Total</h3>
-<div class="valor" id="total">0</div>
-</div>
+.card{
+background:white;
+padding:20px;
+margin:10px;
+border-radius:10px;
+display:inline-block;
+width:220px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
 
-<div class="card ocupados">
-<h3>✅ Ocupados</h3>
-<div class="valor" id="ocupados">0</div>
-</div>
+h1{
+text-align:center;
+}
 
-<div class="card disponiveis">
-<h3>📍 Disponíveis</h3>
-<div class="valor" id="disponiveis">0</div>
-</div>
+.numero{
+font-size:32px;
+font-weight:bold;
+}
+</style>
 
-<div class="card bloqueados">
-<h3>⛔ Bloqueados</h3>
-<div class="valor" id="bloqueados">0</div>
-</div>
+</head>
 
+<body>
+
+<h1>Dashboard de Ocupação - CD Guarapari</h1>
+
+<input type="file" id="arquivo">
+
+<div id="resultado"></div>
+
+<script>
+
+document.getElementById("arquivo")
+.addEventListener("change", function(e){
+
+const arquivo = e.target.files[0];
+
+const leitor = new FileReader();
+
+leitor.onload = function(){
+
+const texto = leitor.result;
+
+const linhas = texto.split("\n");
+
+let total = linhas.length - 1;
+
+document.getElementById("resultado").innerHTML = `
 <div class="card">
-<h3>🏢 1º Andar</h3>
-<div class="valor" id="andar1">0</div>
+<h3>Total Endereços</h3>
+<div class="numero">${total}</div>
 </div>
+`;
 
-<div class="card">
-<h3>🏢 2º Andar</h3>
-<div class="valor" id="andar2">0</div>
-</div>
+};
 
-<div class="card">
-<h3>🏢 3º Andar</h3>
-<div class="valor" id="andar3">0</div>
-</div>
+leitor.readAsText(arquivo);
 
-<div class="card">
-<h3>📈 Taxa de Ocupação</h3>
-<div class="valor" id="taxa">0%</div>
-</div>
+});
 
-</div>
+</script>
+
+</body>
+</html>
