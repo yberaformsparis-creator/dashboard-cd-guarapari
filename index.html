@@ -1,58 +1,101 @@
-<button onclick="window.print()">📄 Exportar PDF</button>```html
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
+
 <head>
+
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Dashboard CD Guarapari</title>
 
 <style>
 
 body{
-font-family:Arial;
-background:#f4f4f4;
+font-family:Arial,sans-serif;
+background:#f4f6f9;
 padding:20px;
+margin:0;
 }
 
 h1{
 text-align:center;
-margin-bottom:30px;
+color:#2c3e50;
+}
+
+.topo{
+text-align:center;
+margin-bottom:20px;
+}
+
+input,
+button{
+padding:10px;
+margin:5px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+button{
+background:#2c3e50;
+color:white;
+}
+
+button:hover{
+background:#34495e;
+}
+
+#resultado{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
 }
 
 .card{
 background:white;
+width:220px;
 padding:20px;
 margin:10px;
 border-radius:10px;
-display:inline-block;
-width:220px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
+box-shadow:0 2px 10px rgba(0,0,0,0.15);
 text-align:center;
 }
 
 .numero{
-font-size:32px;
+font-size:34px;
 font-weight:bold;
 margin-top:10px;
 }
 
+.total{
+border-top:6px solid #34495e;
+}
+
 .ocupado{
-border-left:8px solid #e74c3c;
+border-top:6px solid #e74c3c;
 }
 
 .disponivel{
-border-left:8px solid #2ecc71;
+border-top:6px solid #27ae60;
 }
 
 .bloqueado{
-border-left:8px solid #f39c12;
+border-top:6px solid #f39c12;
 }
 
 .andar{
-border-left:8px solid #3498db;
+border-top:6px solid #3498db;
 }
 
-input{
-margin-bottom:20px;
+.ocupacao{
+border-top:6px solid #8e44ad;
+}
+
+.data{
+text-align:center;
+margin-top:15px;
+color:#777;
+font-size:14px;
 }
 
 </style>
@@ -63,13 +106,28 @@ margin-bottom:20px;
 
 <h1>📦 Dashboard de Ocupação - CD Guarapari</h1>
 
+<div class="topo">
+
 <input type="file" id="arquivo">
+
+<button onclick="window.print()">
+📄 Exportar PDF
+</button>
+
+</div>
 
 <div id="resultado"></div>
 
+<div class="data" id="dataAtual"></div>
+
 <script>
 
-document.getElementById("arquivo").addEventListener("change", function(e){
+document.getElementById("dataAtual").innerHTML =
+"Atualizado em: " +
+new Date().toLocaleString("pt-BR");
+
+document.getElementById("arquivo")
+.addEventListener("change", function(e){
 
 const arquivo = e.target.files[0];
 
@@ -94,7 +152,7 @@ let andar1 = 0;
 let andar2 = 0;
 let andar3 = 0;
 
-for(let i = 1; i < linhas.length; i++){
+for(let i=1;i<linhas.length;i++){
 
 const colunas = linhas[i].split("\t");
 
@@ -113,37 +171,32 @@ if(ativo !== "S" || motivoBloqueio !== ""){
 
 bloqueados++;
 
-}else if(estoque > 0){
+}
+else if(estoque > 0){
 
 ocupados++;
 
-}else{
+}
+else{
 
 disponiveis++;
 
 }
 
-if(andar === "1"){
-andar1++;
-}
-
-if(andar === "2"){
-andar2++;
-}
-
-if(andar === "3"){
-andar3++;
-}
+if(andar === "1") andar1++;
+if(andar === "2") andar2++;
+if(andar === "3") andar3++;
 
 }
 
-const ocupacao = total > 0
+const ocupacao =
+total > 0
 ? ((ocupados / total) * 100).toFixed(1)
 : 0;
 
 document.getElementById("resultado").innerHTML = `
 
-<div class="card">
+<div class="card total">
 <h3>Total Endereços</h3>
 <div class="numero">${total}</div>
 </div>
@@ -163,12 +216,10 @@ document.getElementById("resultado").innerHTML = `
 <div class="numero">${bloqueados}</div>
 </div>
 
-<div class="card">
+<div class="card ocupacao">
 <h3>📈 Ocupação</h3>
 <div class="numero">${ocupacao}%</div>
 </div>
-
-<br><br>
 
 <div class="card andar">
 <h3>🏢 1º Andar</h3>
@@ -197,4 +248,3 @@ leitor.readAsText(arquivo);
 
 </body>
 </html>
-```
