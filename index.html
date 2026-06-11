@@ -1,105 +1,79 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Dashboard CD Guarapari</title>
 
 <style>
-
 body{
-font-family:Arial,sans-serif;
-background:#f4f6f9;
-padding:20px;
-margin:0;
+    font-family: Arial, sans-serif;
+    background:#f4f6f9;
+    margin:0;
+    padding:20px;
 }
 
 h1{
-text-align:center;
-color:#2c3e50;
+    text-align:center;
+    color:#2c3e50;
 }
 
 .topo{
-text-align:center;
-margin-bottom:20px;
+    text-align:center;
+    margin-bottom:20px;
 }
 
-input,
-button{
-padding:10px;
-margin:5px;
-border:none;
-border-radius:6px;
-cursor:pointer;
+input,button{
+    padding:10px;
+    border:none;
+    border-radius:6px;
+    margin:5px;
 }
 
 button{
-background:#2c3e50;
-color:white;
+    background:#2c3e50;
+    color:white;
+    cursor:pointer;
 }
 
 button:hover{
-background:#34495e;
+    background:#34495e;
 }
 
 #resultado{
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
 }
 
 .card{
-background:white;
-width:220px;
-padding:20px;
-margin:10px;
-border-radius:10px;
-box-shadow:0 2px 10px rgba(0,0,0,0.15);
-text-align:center;
+    background:white;
+    width:260px;
+    padding:20px;
+    margin:10px;
+    border-radius:10px;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+    text-align:center;
 }
 
 .numero{
-font-size:34px;
-font-weight:bold;
-margin-top:10px;
+    font-size:34px;
+    font-weight:bold;
 }
 
-.total{
-border-top:6px solid #34495e;
-}
-
-.ocupado{
-border-top:6px solid #e74c3c;
-}
-
-.disponivel{
-border-top:6px solid #27ae60;
-}
-
-.bloqueado{
-border-top:6px solid #f39c12;
-}
-
-.andar{
-border-top:6px solid #3498db;
-}
-
-.ocupacao{
-border-top:6px solid #8e44ad;
-}
+.total{border-top:6px solid #34495e;}
+.ocupado{border-top:6px solid #e74c3c;}
+.disponivel{border-top:6px solid #27ae60;}
+.bloqueado{border-top:6px solid #f39c12;}
+.ocupacao{border-top:6px solid #8e44ad;}
+.andar{border-top:6px solid #3498db;}
 
 .data{
-text-align:center;
-margin-top:15px;
-color:#777;
-font-size:14px;
+    text-align:center;
+    margin-top:15px;
+    color:#777;
 }
-
 </style>
-
 </head>
 
 <body>
@@ -107,13 +81,8 @@ font-size:14px;
 <h1>📦 Dashboard de Ocupação - CD Guarapari</h1>
 
 <div class="topo">
-
-<input type="file" id="arquivo">
-
-<button onclick="window.print()">
-📄 Exportar PDF
-</button>
-
+    <input type="file" id="arquivo">
+    <button onclick="window.print()">📄 Exportar PDF</button>
 </div>
 
 <div id="resultado"></div>
@@ -123,69 +92,88 @@ font-size:14px;
 <script>
 
 document.getElementById("dataAtual").innerHTML =
-"Atualizado em: " +
-new Date().toLocaleString("pt-BR");
+"Atualizado em: " + new Date().toLocaleString("pt-BR");
 
 document.getElementById("arquivo")
 .addEventListener("change", function(e){
 
 const arquivo = e.target.files[0];
 
-if(!arquivo){
-return;
-}
+if(!arquivo) return;
 
 const leitor = new FileReader();
 
 leitor.onload = function(){
 
 const texto = leitor.result;
-
-const linhas = texto.split("\n");
+const linhas = texto.split(/\r?\n/);
 
 let total = 0;
 let ocupados = 0;
 let disponiveis = 0;
 let bloqueados = 0;
 
-let andar1 = 0;
-let andar2 = 0;
-let andar3 = 0;
+let a1_oc = 0;
+let a1_disp = 0;
+let a1_bloq = 0;
+
+let a2_oc = 0;
+let a2_disp = 0;
+let a2_bloq = 0;
+
+let a3_oc = 0;
+let a3_disp = 0;
+let a3_bloq = 0;
 
 for(let i=1;i<linhas.length;i++){
 
-const colunas = linhas[i].split("\t");
+    const linha = linhas[i].trim();
 
-if(colunas.length < 24){
-continue;
-}
+    if(!linha) continue;
 
-total++;
+    const colunas = linha.split("\t");
 
-const andar = (colunas[4] || "").trim();
-const ativo = (colunas[10] || "").trim();
-const estoque = Number(colunas[20]) || 0;
-const motivoBloqueio = (colunas[23] || "").trim();
+    if(colunas.length < 24) continue;
 
-if(ativo !== "S" || motivoBloqueio !== ""){
+    total++;
 
-bloqueados++;
+    const andar = (colunas[4] || "").trim();
+    const ativo = (colunas[10] || "").trim();
+    const estoque = parseFloat(colunas[20]) || 0;
+    const motivoBloqueio = (colunas[23] || "").trim();
 
-}
-else if(estoque > 0){
+    let status = "";
 
-ocupados++;
+    if(ativo !== "S" || motivoBloqueio !== ""){
+        bloqueados++;
+        status = "bloqueado";
+    }
+    else if(estoque > 0){
+        ocupados++;
+        status = "ocupado";
+    }
+    else{
+        disponiveis++;
+        status = "disponivel";
+    }
 
-}
-else{
+    if(andar === "1"){
+        if(status === "ocupado") a1_oc++;
+        if(status === "disponivel") a1_disp++;
+        if(status === "bloqueado") a1_bloq++;
+    }
 
-disponiveis++;
+    if(andar === "2"){
+        if(status === "ocupado") a2_oc++;
+        if(status === "disponivel") a2_disp++;
+        if(status === "bloqueado") a2_bloq++;
+    }
 
-}
-
-if(andar === "1") andar1++;
-if(andar === "2") andar2++;
-if(andar === "3") andar3++;
+    if(andar === "3"){
+        if(status === "ocupado") a3_oc++;
+        if(status === "disponivel") a3_disp++;
+        if(status === "bloqueado") a3_bloq++;
+    }
 
 }
 
@@ -223,17 +211,23 @@ document.getElementById("resultado").innerHTML = `
 
 <div class="card andar">
 <h3>🏢 1º Andar</h3>
-<div class="numero">${andar1}</div>
+<p><b>Ocupadas:</b> ${a1_oc}</p>
+<p><b>Disponíveis:</b> ${a1_disp}</p>
+<p><b>Bloqueadas:</b> ${a1_bloq}</p>
 </div>
 
 <div class="card andar">
 <h3>🏢 2º Andar</h3>
-<div class="numero">${andar2}</div>
+<p><b>Ocupadas:</b> ${a2_oc}</p>
+<p><b>Disponíveis:</b> ${a2_disp}</p>
+<p><b>Bloqueadas:</b> ${a2_bloq}</p>
 </div>
 
 <div class="card andar">
 <h3>🏢 3º Andar</h3>
-<div class="numero">${andar3}</div>
+<p><b>Ocupadas:</b> ${a3_oc}</p>
+<p><b>Disponíveis:</b> ${a3_disp}</p>
+<p><b>Bloqueadas:</b> ${a3_bloq}</p>
 </div>
 
 `;
