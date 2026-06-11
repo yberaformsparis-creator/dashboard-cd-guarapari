@@ -3,21 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Dashboard CD Guarapari</title>
 
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
-
 body{
 font-family:Arial,sans-serif;
 background:#f5f5f5;
 padding:20px;
+margin:0;
 }
 
 .header{
@@ -25,49 +20,36 @@ background:#111;
 padding:30px;
 border-radius:15px;
 text-align:center;
-margin-bottom:25px;
-box-shadow:0 5px 20px rgba(0,0,0,.2);
+margin-bottom:20px;
 }
 
 .logo{
 height:80px;
-margin-bottom:15px;
 }
 
-.header h1{
+h1{
 color:#C9A227;
-font-size:32px;
 }
 
-.header h2{
+h2{
 color:white;
 font-weight:normal;
-margin-top:10px;
 }
 
-#dataAtual{
-color:#ccc;
-margin-top:10px;
+.card{
+background:white;
+width:260px;
+padding:20px;
+margin:10px;
+border-radius:15px;
+display:inline-block;
+box-shadow:0 5px 20px rgba(0,0,0,.08);
+text-align:center;
 }
 
-input{
-padding:10px;
-margin-top:15px;
-}
-
-button{
-padding:10px 20px;
-border:none;
-background:#C9A227;
-color:white;
-border-radius:8px;
-cursor:pointer;
+.numero{
+font-size:36px;
 font-weight:bold;
-margin-left:10px;
-}
-
-button:hover{
-opacity:.9;
 }
 
 #resultado{
@@ -76,49 +58,14 @@ flex-wrap:wrap;
 justify-content:center;
 }
 
-.card{
-background:white;
-width:260px;
-margin:10px;
-padding:20px;
-border-radius:15px;
-box-shadow:0 5px 20px rgba(0,0,0,.08);
-text-align:center;
+button{
+padding:10px 20px;
+background:#C9A227;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
 }
-
-.card h3{
-margin-bottom:10px;
-}
-
-.numero{
-font-size:40px;
-font-weight:bold;
-}
-
-.total{
-border-top:6px solid #2c3e50;
-}
-
-.ocupado{
-border-top:6px solid #e74c3c;
-}
-
-.disponivel{
-border-top:6px solid #27ae60;
-}
-
-.bloqueado{
-border-top:6px solid #f39c12;
-}
-
-.ocupacao{
-border-top:6px solid #8e44ad;
-}
-
-.andar{
-border-top:6px solid #3498db;
-}
-
 </style>
 </head>
 
@@ -135,8 +82,8 @@ border-top:6px solid #3498db;
 
 <input type="file" id="arquivo">
 
-<button onclick="window.print()">
-Exportar PDF
+<button onclick="salvarPNG()">
+📷 Salvar PNG
 </button>
 
 </div>
@@ -146,16 +93,28 @@ Exportar PDF
 <script>
 
 document.getElementById("dataAtual").innerHTML =
-"Atualizado em: " +
 new Date().toLocaleString("pt-BR");
 
-document
-.getElementById("arquivo")
+function salvarPNG(){
+
+html2canvas(document.body).then(canvas=>{
+
+const link=document.createElement("a");
+
+link.download="Dashboard_CD_Guarapari.png";
+
+link.href=canvas.toDataURL("image/png");
+
+link.click();
+
+});
+
+}
+
+document.getElementById("arquivo")
 .addEventListener("change",function(e){
 
 const arquivo=e.target.files[0];
-
-if(!arquivo)return;
 
 const leitor=new FileReader();
 
@@ -170,131 +129,74 @@ let ocupados=0;
 let disponiveis=0;
 let bloqueados=0;
 
-let a1_oc=0;
-let a1_disp=0;
-let a1_bloq=0;
-
-let a2_oc=0;
-let a2_disp=0;
-let a2_bloq=0;
-
-let a3_oc=0;
-let a3_disp=0;
-let a3_bloq=0;
-
 for(let i=1;i<linhas.length;i++){
 
-const linha=linhas[i].trim();
+const linha=linhas[i];
 
-if(!linha)continue;
+if(!linha) continue;
 
 const c=linha.split("\t");
 
-if(c.length<24)continue;
+if(c.length<24) continue;
 
 total++;
 
-const andar=(c[4]||"").trim();
 const ativo=(c[10]||"").trim();
 const estoque=parseFloat(c[20])||0;
 const motivo=(c[23]||"").trim();
 
-let status="";
-
 if(ativo!=="S" || motivo!==""){
 
 bloqueados++;
-status="bloqueado";
 
 }else if(estoque>0){
 
 ocupados++;
-status="ocupado";
 
 }else{
 
 disponiveis++;
-status="disponivel";
-
-}
-
-if(andar==="1"){
-
-if(status==="ocupado")a1_oc++;
-if(status==="disponivel")a1_disp++;
-if(status==="bloqueado")a1_bloq++;
-
-}
-
-if(andar==="2"){
-
-if(status==="ocupado")a2_oc++;
-if(status==="disponivel")a2_disp++;
-if(status==="bloqueado")a2_bloq++;
-
-}
-
-if(andar==="3"){
-
-if(status==="ocupado")a3_oc++;
-if(status==="disponivel")a3_disp++;
-if(status==="bloqueado")a3_bloq++;
 
 }
 
 }
 
-const taxa =
-total > 0
-? ((ocupados/total)*100).toFixed(1)
-: 0;
+const percOcupado=
+((ocupados/total)*100).toFixed(1);
+
+const percDisponivel=
+((disponiveis/total)*100).toFixed(1);
 
 document.getElementById("resultado").innerHTML=`
 
-<div class="card total">
+<div class="card">
 <h3>Total Endereços</h3>
 <div class="numero">${total}</div>
 </div>
 
-<div class="card ocupado">
+<div class="card">
 <h3>Ocupados</h3>
 <div class="numero">${ocupados}</div>
 </div>
 
-<div class="card disponivel">
+<div class="card">
 <h3>Disponíveis</h3>
 <div class="numero">${disponiveis}</div>
 </div>
 
-<div class="card bloqueado">
+<div class="card">
 <h3>Bloqueados</h3>
 <div class="numero">${bloqueados}</div>
 </div>
 
-<div class="card ocupacao">
-<h3>Taxa de Ocupação</h3>
-<div class="numero">${taxa}%</div>
+<div class="card">
+<h3>% Ocupado</h3>
+<div class="numero">${percOcupado}%</div>
 </div>
 
-<div class="card andar">
-<h3>1º Andar</h3>
-<p><b>Ocupados:</b> ${a1_oc}</p>
-<p><b>Disponíveis:</b> ${a1_disp}</p>
-<p><b>Bloqueados:</b> ${a1_bloq}</p>
-</div>
-
-<div class="card andar">
-<h3>2º Andar</h3>
-<p><b>Ocupados:</b> ${a2_oc}</p>
-<p><b>Disponíveis:</b> ${a2_disp}</p>
-<p><b>Bloqueados:</b> ${a2_bloq}</p>
-</div>
-
-<div class="card andar">
-<h3>3º Andar</h3>
-<p><b>Ocupados:</b> ${a3_oc}</p>
-<p><b>Disponíveis:</b> ${a3_disp}</p>
-<p><b>Bloqueados:</b> ${a3_bloq}</p>
+<div class="card">
+<h3>% Disponível</h3>
+<div class="numero">${percDisponivel}%</div>
 </div>
 
 `;
