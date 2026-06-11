@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,10 +6,16 @@
 <title>Dashboard CD Guarapari</title>
 
 <style>
+
 body{
 font-family:Arial;
 background:#f4f4f4;
 padding:20px;
+}
+
+h1{
+text-align:center;
+margin-bottom:30px;
 }
 
 .card{
@@ -19,23 +26,42 @@ border-radius:10px;
 display:inline-block;
 width:220px;
 box-shadow:0 0 10px rgba(0,0,0,0.1);
-}
-
-h1{
 text-align:center;
 }
 
 .numero{
 font-size:32px;
 font-weight:bold;
+margin-top:10px;
 }
+
+.ocupado{
+border-left:8px solid #e74c3c;
+}
+
+.disponivel{
+border-left:8px solid #2ecc71;
+}
+
+.bloqueado{
+border-left:8px solid #f39c12;
+}
+
+.andar{
+border-left:8px solid #3498db;
+}
+
+input{
+margin-bottom:20px;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<h1>Dashboard de Ocupação - CD Guarapari</h1>
+<h1>📦 Dashboard de Ocupação - CD Guarapari</h1>
 
 <input type="file" id="arquivo">
 
@@ -43,10 +69,13 @@ font-weight:bold;
 
 <script>
 
-document.getElementById("arquivo")
-.addEventListener("change", function(e){
+document.getElementById("arquivo").addEventListener("change", function(e){
 
 const arquivo = e.target.files[0];
+
+if(!arquivo){
+return;
+}
 
 const leitor = new FileReader();
 
@@ -56,13 +85,106 @@ const texto = leitor.result;
 
 const linhas = texto.split("\n");
 
-let total = linhas.length - 1;
+let total = 0;
+let ocupados = 0;
+let disponiveis = 0;
+let bloqueados = 0;
+
+let andar1 = 0;
+let andar2 = 0;
+let andar3 = 0;
+
+for(let i = 1; i < linhas.length; i++){
+
+const colunas = linhas[i].split("\t");
+
+if(colunas.length < 24){
+continue;
+}
+
+total++;
+
+const andar = (colunas[4] || "").trim();
+const ativo = (colunas[10] || "").trim();
+const estoque = Number(colunas[20]) || 0;
+const motivoBloqueio = (colunas[23] || "").trim();
+
+if(ativo !== "S" || motivoBloqueio !== ""){
+
+bloqueados++;
+
+}else if(estoque > 0){
+
+ocupados++;
+
+}else{
+
+disponiveis++;
+
+}
+
+if(andar === "1"){
+andar1++;
+}
+
+if(andar === "2"){
+andar2++;
+}
+
+if(andar === "3"){
+andar3++;
+}
+
+}
+
+const ocupacao = total > 0
+? ((ocupados / total) * 100).toFixed(1)
+: 0;
 
 document.getElementById("resultado").innerHTML = `
+
 <div class="card">
 <h3>Total Endereços</h3>
 <div class="numero">${total}</div>
 </div>
+
+<div class="card ocupado">
+<h3>🔴 Ocupados</h3>
+<div class="numero">${ocupados}</div>
+</div>
+
+<div class="card disponivel">
+<h3>🟢 Disponíveis</h3>
+<div class="numero">${disponiveis}</div>
+</div>
+
+<div class="card bloqueado">
+<h3>🟠 Bloqueados</h3>
+<div class="numero">${bloqueados}</div>
+</div>
+
+<div class="card">
+<h3>📈 Ocupação</h3>
+<div class="numero">${ocupacao}%</div>
+</div>
+
+<br><br>
+
+<div class="card andar">
+<h3>🏢 1º Andar</h3>
+<div class="numero">${andar1}</div>
+</div>
+
+<div class="card andar">
+<h3>🏢 2º Andar</h3>
+<div class="numero">${andar2}</div>
+</div>
+
+<div class="card andar">
+<h3>🏢 3º Andar</h3>
+<div class="numero">${andar3}</div>
+</div>
+
 `;
 
 };
@@ -75,3 +197,4 @@ leitor.readAsText(arquivo);
 
 </body>
 </html>
+```
