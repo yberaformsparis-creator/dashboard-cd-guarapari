@@ -2,131 +2,198 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard CD Guarapari</title>
+<title>WMS CD Guarapari</title>
 
 <style>
 body{
-    font-family: Arial, sans-serif;
+    font-family: Arial;
     background:#eef1f5;
     margin:0;
-    padding:30px;
-}
-
-header{
-    text-align:center;
-    margin-bottom:20px;
+    padding:20px;
 }
 
 h1{
-    margin:0;
-    font-size:22px;
-    color:#333;
+    text-align:center;
+    margin-bottom:10px;
 }
 
-.container{
+.controls{
     display:flex;
     justify-content:center;
+    gap:10px;
     flex-wrap:wrap;
-    gap:15px;
+}
+
+input, select{
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:10px;
     margin-top:20px;
 }
 
 .card{
     background:white;
-    padding:20px;
-    border-radius:12px;
-    width:220px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.08);
-    transition:0.2s;
-}
-
-.card:hover{
-    transform:scale(1.03);
-}
-
-.titulo{
-    font-size:14px;
-    color:#666;
+    padding:15px;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
 }
 
 .numero{
-    font-size:32px;
+    font-size:22px;
     font-weight:bold;
-    margin-top:10px;
-    color:#111;
 }
 
-input{
-    display:block;
-    margin:0 auto;
+.tabela{
+    margin-top:20px;
+    background:white;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th, td{
     padding:10px;
+    border-bottom:1px solid #eee;
+    font-size:13px;
 }
-</style>
 
+th{
+    background:#111827;
+    color:white;
+}
+
+.status{
+    padding:4px 8px;
+    border-radius:10px;
+    font-size:12px;
+}
+
+.ok{background:#d1fae5;color:#065f46;}
+.nok{background:#fee2e2;color:#991b1b;}
+</style>
 </head>
 
 <body>
 
-<header>
-    <h1>Dashboard de Ocupação - CD Guarapari</h1>
-    <input type="file" id="arquivo">
-</header>
+<h1>WMS CD Guarapari - Controle Real</h1>
 
-<div class="container" id="resultado"></div>
+<div class="controls">
+    <input type="file" id="arquivo">
+    <input type="text" id="busca" placeholder="Buscar Local / Bloco">
+    <select id="filtro">
+        <option value="todos">Todos</option>
+        <option value="ativo">Ativo</option>
+        <option value="inativo">Inativo</option>
+    </select>
+</div>
+
+<div class="grid" id="cards"></div>
+
+<div class="tabela">
+<table>
+<thead>
+<tr>
+<th>Local</th>
+<th>Bloco</th>
+<th>Andar</th>
+<th>Estoque</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody id="tabela"></tbody>
+</table>
+</div>
 
 <script>
 
-document.getElementById("arquivo")
-.addEventListener("change", function(e){
+let dados = [];
 
-    const arquivo = e.target.files[0];
-    const leitor = new FileReader();
+document.getElementById("arquivo").addEventListener("change", function(e){
 
-    leitor.onload = function(){
+    const file = e.target.files[0];
+    const reader = new FileReader();
 
-        const texto = leitor.result;
+    // 🔥 CORREÇÃO DO Ã© Ã§
+    reader.readAsText(file, "ISO-8859-1");
 
-        // aceita TSV / CSV
-        let linhas = texto.split(/\r?\n/).filter(l => l.trim() !== "");
+    reader.onload = function(){
 
-        let total = linhas.length;
+        let linhas = reader.result.split(/\r?\n/).filter(l => l.trim() !== "");
 
-        // remove cabeçalho se existir
-        if(total > 0 && linhas[0].toLowerCase().includes("endereço")){
-            linhas.shift();
-            total = linhas.length;
-        }
+        let header = linhas[0].split("\t");
 
-        // simulação de ocupação (caso queira evoluir depois)
-        let ocupados = Math.floor(total * 0.72);
-        let livres = total - ocupados;
+        dados = linhas.slice(1).map(linha => {
 
-        document.getElementById("resultado").innerHTML = `
-            <div class="card">
-                <div class="titulo">Total Endereços</div>
-                <div class="numero">${total}</div>
-            </div>
+            let col = linha.split("\t");
 
-            <div class="card">
-                <div class="titulo">Ocupados</div>
-                <div class="numero">${ocupados}</div>
-            </div>
+            return {
+                local: col[0],
+                bloco: col[1],
+                andar: col[4],
+                estoque: col[21],
+                ativo: col[10] // S ou N
+            };
+        });
 
-            <div class="card">
-                <div class="titulo">Livres</div>
-                <div class="numero">${livres}</div>
-            </div>
-
-            <div class="card">
-                <div class="titulo">Ocupação (%)</div>
-                <div class="numero">${total ? Math.round((ocupados/total)*100) : 0}%</div>
-            </div>
-        `;
+        render();
     };
-
-    leitor.readAsText(arquivo);
-
 });
+
+document.getElementById("busca").addEventListener("input", render);
+document.getElementById("filtro").addEventListener("change", render);
+
+function render(){
+
+    let busca = document.getElementById("busca").value.toLowerCase();
+    let filtro = document.getElementById("filtro").value;
+
+    let filtrado = dados.filter(d => {
+
+        let okBusca =
+            (d.local || "").toLowerCase().includes(busca) ||
+            (d.bloco || "").toLowerCase().includes(busca);
+
+        let status = d.ativo === "S" ? "ativo" : "inativo";
+
+        let okFiltro = filtro === "todos" || filtro === status;
+
+        return okBusca && okFiltro;
+    });
+
+    let total = dados.length;
+    let ativos = dados.filter(d => d.ativo === "S").length;
+    let inativos = total - ativos;
+
+    document.getElementById("cards").innerHTML = `
+        <div class="card"><div>Total</div><div class="numero">${total}</div></div>
+        <div class="card"><div>Ativos</div><div class="numero">${ativos}</div></div>
+        <div class="card"><div>Inativos</div><div class="numero">${inativos}</div></div>
+    `;
+
+    document.getElementById("tabela").innerHTML = filtrado.map(d => `
+        <tr>
+            <td>${d.local}</td>
+            <td>${d.bloco}</td>
+            <td>${d.andar}</td>
+            <td>${d.estoque}</td>
+            <td>
+                <span class="status ${d.ativo === "S" ? "ok" : "nok"}">
+                    ${d.ativo === "S" ? "ATIVO" : "INATIVO"}
+                </span>
+            </td>
+        </tr>
+    `).join("");
+}
 
 </script>
 
